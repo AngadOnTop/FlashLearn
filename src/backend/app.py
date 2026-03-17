@@ -28,8 +28,7 @@ def generate_flashcards():
         year = data.get("year", "")
         subject = data.get("subject", "")
         topic = data.get("topic", "")
-
-        # Example: simple 5 flashcards (replace with AI call)
+        
         cards = [
             {"question": f"{subject} Q1 ({year}) about {topic}", "answer": "Answer 1"},
             {"question": f"{subject} Q2 ({year}) about {topic}", "answer": "Answer 2"},
