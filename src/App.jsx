@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import logo from "./assets/logo.png";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
@@ -271,7 +272,7 @@ function App() {
       <header className="app-header">
         <div className="logo">
           <div className="logo-container">
-            <img src="/src/assets/logo.png" alt="FlashLearn Logo" className="logo-image" />
+            <img src={logo} alt="FlashLearn Logo" className="logo-image" />
             <h1>FlashLearn</h1>
           </div>
           <p className="tagline">AI-Powered Flashcard Generator</p>
