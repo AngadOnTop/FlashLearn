@@ -28,12 +28,12 @@ def generate_flashcards():
             count = 5
 
         # Create dynamic system prompt
-        system_prompt = f"""You are an assistant that generates educational flashcard questions.
+        system_prompt = rf"""You are an assistant that generates educational flashcard questions.
 Generate exactly {count} questions relevant to that year, subject, and topic.
 Return ONLY a raw JSON array with 'question' and 'answer' fields.
 No markdown, no code fences, no explanation, just the raw JSON array.
 For any mathematical expressions, use LaTeX notation wrapped in $ for inline math
-and $$ for block math. For example: "The quadratic formula is $x = \\frac{{-b \\pm \\sqrt{{b^2-4ac}}}}{{2a}}$"
+and $$ for block math. For example: "The quadratic formula is $x = \frac{{-b \pm \sqrt{{b^2-4ac}}}}{{2a}}$"
 [
   {{"question": "What is...", "answer": "The answer is..."}}
 ]"""
