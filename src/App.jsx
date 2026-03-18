@@ -45,13 +45,19 @@ function App() {
         <button type="submit">Generate Flashcards</button>
       </form>
 
-      <div>
-        {cards.map((card, index) => (
-          <div key={index}>
-            <strong>Q:</strong> {card.question} <br />
-            <strong>A:</strong> {card.answer}
-          </div>
-        ))}
+      <div className="flashcards-container">
+        {cards.length === 0 ? (
+          <div className="no-cards">No flashcards yet. Generate some to get started!</div>
+        ) : (
+          cards.map((card, index) => (
+            <div key={index} className="flashcard">
+              <strong>Q:</strong>
+              <div className="question">{card.question}</div>
+              <strong>A:</strong>
+              <div className="answer">{card.answer}</div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
