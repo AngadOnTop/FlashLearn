@@ -9,18 +9,6 @@ CORS(app, origins=["http://localhost:5173", "https://flashlearnai.netlify.app"])
 
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-SYSTEM_PROMPT = """
-You are an assistant that generates educational flashcard questions.
-Generate exactly {count} questions relevant to that year, subject, and topic.
-Return ONLY a raw JSON array with 'question' and 'answer' fields.
-No markdown, no code fences, no explanation, just the raw JSON array.
-For any mathematical expressions, use LaTeX notation wrapped in $ for inline math
-and $$ for block math. For example: "The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$"
-[
-  {"question": "What is...", "answer": "The answer is..."}
-]
-"""
-
 @app.route("/generate", methods=["POST", "OPTIONS"])
 def generate_flashcards():
     if request.method == "OPTIONS":

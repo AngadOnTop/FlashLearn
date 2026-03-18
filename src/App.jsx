@@ -162,7 +162,6 @@ function App() {
       setCustomCards(updatedCustomCards);
       setCustomQuestion("");
       setCustomAnswer("");
-      setShowCustomForm(false);
       showToast("✅ Custom flashcard added successfully!", 'success');
     }
   };
@@ -422,12 +421,6 @@ function App() {
                       <div className="run-section">
                         <button onClick={startCustomCardsStudy} className="run-btn">
                           🚀 Run Custom Flashcards
-                        </button>
-                        <button 
-                          onClick={() => setShowCustomForm(false)}
-                          className="add-more-btn"
-                        >
-                          ➕ Add More Cards
                         </button>
                       </div>
                     </div>
