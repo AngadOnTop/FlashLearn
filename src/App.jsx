@@ -154,7 +154,7 @@ function App() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/generate", {
+      const response = await fetch("http://192.168.0.5:5000/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

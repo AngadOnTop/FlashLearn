@@ -5,7 +5,7 @@ load_dotenv(".env.local")
 import os, requests, json, re
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173", "https://flashlearnai.netlify.app"])
+CORS(app, origins=["http://localhost:5173", "https://flashlearnai.netlify.app", "http://192.168.0.5:5173", "http://192.168.0.5:3000", "http://192.168.0.5:8080"])
 
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
