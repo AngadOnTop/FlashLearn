@@ -75,6 +75,12 @@ function App() {
   const [currentStudyCards, setCurrentStudyCards] = useState([]);
   const [studyType, setStudyType] = useState("");
   const [toast, setToast] = useState(null);
+  const [showPomodoro, setShowPomodoro] = useState(false);
+  const [pomodoroMinutes, setPomodoroMinutes] = useState(25);
+  const [pomodoroSeconds, setPomodoroSeconds] = useState(0);
+  const [pomodoroTimeLeft, setPomodoroTimeLeft] = useState(25 * 60);
+  const [isPomodoroActive, setIsPomodoroActive] = useState(false);
+  const [pomodoroMode, setPomodoroMode] = useState('focus'); // 'focus', 'shortBreak', 'longBreak'
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
@@ -82,6 +88,63 @@ function App() {
 
   const hideToast = () => {
     setToast(null);
+  };
+
+  // Pomodoro Timer Functions
+  const startPomodoro = () => {
+    setIsPomodoroActive(true);
+  };
+
+  const pausePomodoro = () => {
+    setIsPomodoroActive(false);
+  };
+
+  const resetPomodoro = () => {
+    setIsPomodoroActive(false);
+    setPomodoroTimeLeft(pomodoroMinutes * 60);
+  };
+
+  const changePomodoroMode = (mode) => {
+    let minutes;
+    switch(mode) {
+      case 'focus':
+        minutes = 25;
+        break;
+      case 'shortBreak':
+        minutes = 5;
+        break;
+      case 'longBreak':
+        minutes = 15;
+        break;
+      default:
+        minutes = 25;
+    }
+    setPomodoroMode(mode);
+    setPomodoroMinutes(minutes);
+    setPomodoroTimeLeft(minutes * 60);
+    setIsPomodoroActive(false);
+  };
+
+  // Pomodoro Timer Effect
+  useEffect(() => {
+    let interval;
+    if (isPomodoroActive && pomodoroTimeLeft > 0) {
+      interval = setInterval(() => {
+        setPomodoroTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (pomodoroTimeLeft === 0) {
+      setIsPomodoroActive(false);
+      showToast(`🍅 ${pomodoroMode === 'focus' ? 'Focus time complete!' : 'Break time complete!'}`, 'success');
+      // Play notification sound or browser notification could go here
+    }
+    
+    return () => clearInterval(interval);
+  }, [isPomodoroActive, pomodoroTimeLeft, pomodoroMode]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const generateCards = async (event) => {
@@ -515,6 +578,84 @@ function App() {
       <footer className="app-footer">
         <p>🚀 Powered by AI • Learn Smarter, Not Harder</p>
       </footer>
+
+      {/* Pomodoro Timer */}
+      <div className={`pomodoro-container ${showPomodoro ? 'expanded' : ''}`}>
+        <button 
+          className="pomodoro-toggle"
+          onClick={() => setShowPomodoro(!showPomodoro)}
+        >
+          ⏱️ Pomodoro
+        </button>
+        
+        {showPomodoro && (
+          <div className="pomodoro-panel">
+            <div className="pomodoro-header">
+              <h3>⏱️ Pomodoro Timer</h3>
+              <button 
+                className="pomodoro-close"
+                onClick={() => setShowPomodoro(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="pomodoro-modes">
+              <button 
+                className={`mode-btn ${pomodoroMode === 'focus' ? 'active' : ''}`}
+                onClick={() => changePomodoroMode('focus')}
+              >
+                🎯 Focus (25m)
+              </button>
+              <button 
+                className={`mode-btn ${pomodoroMode === 'shortBreak' ? 'active' : ''}`}
+                onClick={() => changePomodoroMode('shortBreak')}
+              >
+                ☕ Short Break (5m)
+              </button>
+              <button 
+                className={`mode-btn ${pomodoroMode === 'longBreak' ? 'active' : ''}`}
+                onClick={() => changePomodoroMode('longBreak')}
+              >
+                🌴 Long Break (15m)
+              </button>
+            </div>
+            
+            <div className="pomodoro-display">
+              <div className="pomodoro-timer">
+                {formatTime(pomodoroTimeLeft)}
+              </div>
+              <div className="pomodoro-controls">
+                {!isPomodoroActive ? (
+                  <button onClick={startPomodoro} className="control-btn start-btn">
+                    ▶️ Start
+                  </button>
+                ) : (
+                  <button onClick={pausePomodoro} className="control-btn pause-btn">
+                    ⏸️ Pause
+                  </button>
+                )}
+                <button onClick={resetPomodoro} className="control-btn reset-btn">
+                  🔄 Reset
+                </button>
+              </div>
+            </div>
+            
+            <div className="pomodoro-progress">
+              <div 
+                className="progress-ring"
+                style={{
+                  background: `conic-gradient(var(--accent) ${(pomodoroTimeLeft / (pomodoroMinutes * 60)) * 360}deg, var(--surface-3) 0deg)`
+                }}
+              >
+                <div className="progress-ring-inner">
+                  {pomodoroMode === 'focus' ? '🎯' : pomodoroMode === 'shortBreak' ? '☕' : '🌴'}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Toast Container */}
       <div className="toast-container">
