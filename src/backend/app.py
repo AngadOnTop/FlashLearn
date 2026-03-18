@@ -2,10 +2,10 @@ from flask import Flask, request, jsonify
 import os
 import requests
 import json
+import re
 
 app = Flask(__name__)
 
-# Manual CORS configuration
 @app.after_request
 def after_request(response):
     header = response.headers
@@ -36,14 +36,14 @@ def generate_flashcards():
         return jsonify({}), 200
 
     try:
-        data = request.json
-        year = data.get("year", "")
-        subject = data.get("subject", "")
-        topic = data.get("topic", "")
+        body = request.json  # ← renamed from 'data'
+        year = body.get("year", "")
+        subject = body.get("subject", "")
+        topic = body.get("topic", "")
         
         user_prompt = f"Generate 5 flashcard questions for {subject} at {year} level about {topic}."
         
-        response = requests.post(
+        api_response = requests.post(  # ← renamed from 'response'
             "https://api.apifree.ai/v1/chat/completions",
             headers={
                 "Content-Type": "application/json",
@@ -59,33 +59,29 @@ def generate_flashcards():
                 "stream": False
             }
         )
+
+        if not api_response.ok:
+            raise Exception(f"API request failed: {api_response.status_code}")
         
-        if not response.ok:
-            raise Exception(f"API request failed: {response.status_code}")
+        api_data = api_response.json()  # ← renamed from 'data'
         
-        data = response.json()
-        
-        if "choices" not in data or not data["choices"]:
+        if "choices" not in api_data or not api_data["choices"]:
             raise Exception("Invalid API response format")
         
-        content = data["choices"][0]["message"]["content"]
+        content = api_data["choices"][0]["message"]["content"]
         
-        # Try to parse as JSON array
         try:
             cards = json.loads(content)
             if not isinstance(cards, list):
                 raise ValueError("Response is not a list")
         except (json.JSONDecodeError, ValueError):
-            # Fallback: extract JSON from markdown if needed
-            import re
             json_match = re.search(r'\[.*?\]', content, re.DOTALL)
             if json_match:
                 cards = json.loads(json_match.group())
             else:
                 raise Exception("Could not parse flashcards from AI response")
         
-        response = jsonify(cards)
-        return response
+        return jsonify(cards)  # ← no reassignment, just return directly
 
     except Exception as e:
         print(f"Error: {e}")
