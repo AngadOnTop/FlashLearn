@@ -1,32 +1,23 @@
 from flask import Flask, request, jsonify
-import os
-import requests
-import json
-import re
+from flask_cors import CORS
+from dotenv import load_dotenv
+load_dotenv(".env.local")
+import os, requests, json, re
 
 app = Flask(__name__)
-
-@app.after_request
-def after_request(response):
-    header = response.headers
-    header['Access-Control-Allow-Origin'] = 'http://localhost:5173'
-    header['Access-Control-Allow-Credentials'] = 'true'
-    header['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,Accept'
-    header['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
-    return response
+CORS(app, origins=["http://localhost:5173"])
 
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = SYSTEM_PROMPT = """
 You are an assistant that generates educational flashcard questions.
-The user will provide a year, subject, and syllabus/topic.
 Generate exactly 5 questions relevant to that year, subject, and topic.
-Return them as an array of JSON objects with 'question' and 'answer' fields.
-Do not include extra explanation, just the 5 Q&A pairs.
-Format your response as valid JSON like this:
+Return ONLY a raw JSON array with 'question' and 'answer' fields.
+No markdown, no code fences, no explanation, just the raw JSON array.
+For any mathematical expressions, use LaTeX notation wrapped in $ for inline math
+and $$ for block math. For example: "The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$"
 [
-  {"question": "What is...", "answer": "The answer is..."},
-  {"question": "How do you...", "answer": "You can..."}
+  {"question": "What is...", "answer": "The answer is..."}
 ]
 """
 
@@ -36,14 +27,14 @@ def generate_flashcards():
         return jsonify({}), 200
 
     try:
-        body = request.json  # ← renamed from 'data'
+        body = request.json
         year = body.get("year", "")
         subject = body.get("subject", "")
         topic = body.get("topic", "")
-        
+
         user_prompt = f"Generate 5 flashcard questions for {subject} at {year} level about {topic}."
-        
-        api_response = requests.post(  # ← renamed from 'response'
+
+        api_response = requests.post(
             "https://api.apifree.ai/v1/chat/completions",
             headers={
                 "Content-Type": "application/json",
@@ -62,30 +53,33 @@ def generate_flashcards():
 
         if not api_response.ok:
             raise Exception(f"API request failed: {api_response.status_code}")
-        
-        api_data = api_response.json()  # ← renamed from 'data'
-        
+
+        api_data = api_response.json()
+
         if "choices" not in api_data or not api_data["choices"]:
             raise Exception("Invalid API response format")
-        
+
         content = api_data["choices"][0]["message"]["content"]
-        
+
+        # Strip markdown code fences if present
+        content = re.sub(r'```json|```', '', content).strip()
+
         try:
             cards = json.loads(content)
             if not isinstance(cards, list):
                 raise ValueError("Response is not a list")
         except (json.JSONDecodeError, ValueError):
-            json_match = re.search(r'\[.*?\]', content, re.DOTALL)
+            json_match = re.search(r'\[.*\]', content, re.DOTALL)
             if json_match:
                 cards = json.loads(json_match.group())
             else:
                 raise Exception("Could not parse flashcards from AI response")
-        
-        return jsonify(cards)  # ← no reassignment, just return directly
+
+        return jsonify(cards)
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
