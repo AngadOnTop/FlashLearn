@@ -9,9 +9,9 @@ CORS(app, origins=["http://localhost:5173"])
 
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-SYSTEM_PROMPT = SYSTEM_PROMPT = """
+SYSTEM_PROMPT = """
 You are an assistant that generates educational flashcard questions.
-Generate exactly 5 questions relevant to that year, subject, and topic.
+Generate exactly {count} questions relevant to that year, subject, and topic.
 Return ONLY a raw JSON array with 'question' and 'answer' fields.
 No markdown, no code fences, no explanation, just the raw JSON array.
 For any mathematical expressions, use LaTeX notation wrapped in $ for inline math
@@ -31,8 +31,26 @@ def generate_flashcards():
         year = body.get("year", "")
         subject = body.get("subject", "")
         topic = body.get("topic", "")
+        count = body.get("count", 5)
+        
+        # Validate count (max 20)
+        if count > 20:
+            count = 20
+        elif count < 1:
+            count = 5
 
-        user_prompt = f"Generate 5 flashcard questions for {subject} at {year} level about {topic}."
+        # Create dynamic system prompt
+        system_prompt = f"""You are an assistant that generates educational flashcard questions.
+Generate exactly {count} questions relevant to that year, subject, and topic.
+Return ONLY a raw JSON array with 'question' and 'answer' fields.
+No markdown, no code fences, no explanation, just the raw JSON array.
+For any mathematical expressions, use LaTeX notation wrapped in $ for inline math
+and $$ for block math. For example: "The quadratic formula is $x = \\frac{{-b \\pm \\sqrt{{b^2-4ac}}}}{{2a}}$"
+[
+  {{"question": "What is...", "answer": "The answer is..."}}
+]"""
+
+        user_prompt = f"Generate {count} flashcard questions for {subject} at {year} level about {topic}."
 
         api_response = requests.post(
             "https://api.apifree.ai/v1/chat/completions",
@@ -44,7 +62,7 @@ def generate_flashcards():
                 "model": "anthropic/claude-haiku-4.5",
                 "max_tokens": 1024,
                 "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
                 "stream": False

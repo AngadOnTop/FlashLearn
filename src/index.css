@@ -697,6 +697,47 @@ textarea {
   background: var(--surface);
 }
 
+/* ─── Count Selector ─────────────────────────────── */
+
+.count-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.count-select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  padding: 0.8rem 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.count-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+  background: var(--surface-3);
+}
+
+.count-select option {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
+
+.count-info {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
 /* ─── Toast Notifications ────────────────────────── */
 
 .toast-container {

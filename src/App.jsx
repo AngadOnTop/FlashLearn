@@ -60,6 +60,7 @@ function App() {
   const [year, setYear] = useState("");
   const [subject, setSubject] = useState("");
   const [syllabus, setSyllabus] = useState("");
+  const [cardCount, setCardCount] = useState(5);
   const [cards, setCards] = useState([]);
   const [customCards, setCustomCards] = useState([]);
   const [allCards, setAllCards] = useState([]);
@@ -97,7 +98,7 @@ function App() {
           "Accept": "application/json"
         },
         mode: "cors",
-        body: JSON.stringify({ year, subject, topic: syllabus })
+        body: JSON.stringify({ year, subject, topic: syllabus, count: cardCount })
       });
 
       if (!response.ok) {
@@ -272,6 +273,29 @@ function App() {
                         onChange={(e) => setSyllabus(e.target.value)}
                         required
                       />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="count">Number of Flashcards</label>
+                      <div className="count-selector">
+                        <select
+                          id="count"
+                          value={cardCount}
+                          onChange={(e) => setCardCount(Number(e.target.value))}
+                          className="count-select"
+                        >
+                          <option value={3}>3 flashcards</option>
+                          <option value={5}>5 flashcards</option>
+                          <option value={8}>8 flashcards</option>
+                          <option value={10}>10 flashcards</option>
+                          <option value={12}>12 flashcards</option>
+                          <option value={15}>15 flashcards</option>
+                          <option value={20}>20 flashcards (max)</option>
+                        </select>
+                        <span className="count-info">
+                          AI generates up to 20 cards • Custom cards unlimited
+                        </span>
+                      </div>
                     </div>
 
                     <button type="submit" disabled={isLoading} className="generate-btn">
