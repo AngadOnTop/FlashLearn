@@ -154,7 +154,12 @@ function App() {
     setError("");
 
     try {
-      const response = await fetch("http://192.168.0.5:5000/generate", {
+      // Use different URLs for development vs production
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? "http://192.168.0.5:5000/generate"  // Local development
+        : "https://flashlearn-v05j.onrender.com"; // Production (replace with your actual backend URL)
+      
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
