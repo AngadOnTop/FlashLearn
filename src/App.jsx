@@ -49,9 +49,7 @@ function Toast({ message, type, onClose }) {
         </span>
         <span className="toast-message">{message}</span>
       </div>
-      <button className="toast-close" onClick={onClose}>
-        ×
-      </button>
+      <button className="toast-close" onClick={onClose}>×</button>
     </div>
   );
 }
@@ -67,6 +65,7 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [slowLoad, setSlowLoad] = useState(false);
   const [error, setError] = useState("");
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customQuestion, setCustomQuestion] = useState("");
@@ -77,55 +76,31 @@ function App() {
   const [toast, setToast] = useState(null);
   const [showPomodoro, setShowPomodoro] = useState(false);
   const [pomodoroMinutes, setPomodoroMinutes] = useState(25);
-  const [pomodoroSeconds, setPomodoroSeconds] = useState(0);
   const [pomodoroTimeLeft, setPomodoroTimeLeft] = useState(25 * 60);
   const [isPomodoroActive, setIsPomodoroActive] = useState(false);
-  const [pomodoroMode, setPomodoroMode] = useState('focus'); // 'focus', 'shortBreak', 'longBreak'
+  const [pomodoroMode, setPomodoroMode] = useState('focus');
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
   };
 
-  const hideToast = () => {
-    setToast(null);
-  };
+  const hideToast = () => setToast(null);
 
-  // Pomodoro Timer Functions
-  const startPomodoro = () => {
-    setIsPomodoroActive(true);
-  };
-
-  const pausePomodoro = () => {
-    setIsPomodoroActive(false);
-  };
-
+  const startPomodoro = () => setIsPomodoroActive(true);
+  const pausePomodoro = () => setIsPomodoroActive(false);
   const resetPomodoro = () => {
     setIsPomodoroActive(false);
     setPomodoroTimeLeft(pomodoroMinutes * 60);
   };
 
   const changePomodoroMode = (mode) => {
-    let minutes;
-    switch(mode) {
-      case 'focus':
-        minutes = 25;
-        break;
-      case 'shortBreak':
-        minutes = 5;
-        break;
-      case 'longBreak':
-        minutes = 15;
-        break;
-      default:
-        minutes = 25;
-    }
+    const minutes = mode === 'focus' ? 25 : mode === 'shortBreak' ? 5 : 15;
     setPomodoroMode(mode);
     setPomodoroMinutes(minutes);
     setPomodoroTimeLeft(minutes * 60);
     setIsPomodoroActive(false);
   };
 
-  // Pomodoro Timer Effect
   useEffect(() => {
     let interval;
     if (isPomodoroActive && pomodoroTimeLeft > 0) {
@@ -135,9 +110,7 @@ function App() {
     } else if (pomodoroTimeLeft === 0) {
       setIsPomodoroActive(false);
       showToast(`🍅 ${pomodoroMode === 'focus' ? 'Focus time complete!' : 'Break time complete!'}`, 'success');
-      // Play notification sound or browser notification could go here
     }
-    
     return () => clearInterval(interval);
   }, [isPomodoroActive, pomodoroTimeLeft, pomodoroMode]);
 
@@ -150,15 +123,17 @@ function App() {
   const generateCards = async (event) => {
     event.preventDefault();
     setIsLoading(true);
+    setSlowLoad(false);
     setShowAnswer(false);
     setError("");
 
+    const slowTimer = setTimeout(() => setSlowLoad(true), 6000);
+
     try {
-      // Use different URLs for development vs production
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? "http://192.168.0.5:5000/generate"  // Local development
-        : "https://flashlearn-v05j.onrender.com/generate"; // Production (replace with your actual backend URL)
-      
+      const apiUrl = window.location.hostname === 'localhost'
+        ? "http://localhost:5000/generate"
+        : "https://flashlearn-v05j.onrender.com/generate";
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -194,6 +169,8 @@ function App() {
       setError(`Failed to generate flashcards: ${error.message}`);
       showToast(`Failed to generate flashcards: ${error.message}`, 'error');
     } finally {
+      clearTimeout(slowTimer);
+      setSlowLoad(false);
       setIsLoading(false);
     }
   };
@@ -226,8 +203,7 @@ function App() {
         answer: customAnswer.trim(),
         isCustom: true
       };
-      const updatedCustomCards = [...customCards, newCard];
-      setCustomCards(updatedCustomCards);
+      setCustomCards([...customCards, newCard]);
       setCustomQuestion("");
       setCustomAnswer("");
       showToast("✅ Custom flashcard added successfully!", 'success');
@@ -235,8 +211,7 @@ function App() {
   };
 
   const deleteCustomCard = (index) => {
-    const updatedCustomCards = customCards.filter((_, i) => i !== index);
-    setCustomCards(updatedCustomCards);
+    setCustomCards(customCards.filter((_, i) => i !== index));
     showToast("🗑️ Custom flashcard deleted", 'info');
   };
 
@@ -254,9 +229,7 @@ function App() {
     }
   };
 
-  const toggleAnswer = () => {
-    setShowAnswer(!showAnswer);
-  };
+  const toggleAnswer = () => setShowAnswer(!showAnswer);
 
   const exitStudyMode = () => {
     setStudyMode(false);
@@ -300,7 +273,6 @@ function App() {
       <main className="main-content">
         {!studyMode && (
           <>
-            {/* AI Generation Section */}
             {!showCustomForm && (
               <section className="generator-section">
                 <div className="form-container">
@@ -373,12 +345,18 @@ function App() {
                       {isLoading ? (
                         <>
                           <span className="spinner"></span>
-                          Generating Flashcards...
+                          {slowLoad ? "Waking up server..." : "Generating Flashcards..."}
                         </>
                       ) : (
                         <>⚡ Generate Flashcards</>
                       )}
                     </button>
+
+                    {slowLoad && (
+                      <div className="slow-load-message">
+                        ☕ Server is waking up from sleep — this only happens on the first request and takes ~30 seconds.
+                      </div>
+                    )}
                   </form>
 
                   {cards.length > 0 && (
@@ -394,8 +372,8 @@ function App() {
                     <span>OR</span>
                   </div>
 
-                  <button 
-                    onClick={() => setShowCustomForm(true)} 
+                  <button
+                    onClick={() => setShowCustomForm(true)}
                     className="custom-btn"
                     disabled={isLoading}
                   >
@@ -411,14 +389,11 @@ function App() {
               </section>
             )}
 
-            {/* Custom Flashcard Creation */}
             {showCustomForm && (
               <section className="custom-section">
                 <div className="form-container">
                   <h2>Create Custom Flashcards</h2>
-                  <p className="form-description">
-                    Add your own questions and answers
-                  </p>
+                  <p className="form-description">Add your own questions and answers</p>
 
                   <form onSubmit={addCustomCard} className="flashcard-form">
                     <div className="form-group">
@@ -449,8 +424,8 @@ function App() {
                       <button type="submit" className="generate-btn">
                         ➕ Add Flashcard
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => {
                           setShowCustomForm(false);
                           setCustomQuestion("");
@@ -477,7 +452,7 @@ function App() {
                                 <strong>A:</strong> {card.answer}
                               </div>
                             </div>
-                            <button 
+                            <button
                               onClick={() => deleteCustomCard(index)}
                               className="delete-btn"
                             >
@@ -499,7 +474,6 @@ function App() {
           </>
         )}
 
-        {/* Study Mode */}
         {studyMode && (
           <section className="study-section">
             <div className="study-header">
@@ -522,7 +496,7 @@ function App() {
                   🏠 Exit Study
                 </button>
                 <button onClick={resetAll} className="reset-btn">
-                  � Start Over
+                  🔄 Start Over
                 </button>
               </div>
             </div>
@@ -586,68 +560,55 @@ function App() {
 
       {/* Pomodoro Timer */}
       <div className={`pomodoro-container ${showPomodoro ? 'expanded' : ''}`}>
-        <button 
+        <button
           className="pomodoro-toggle"
           onClick={() => setShowPomodoro(!showPomodoro)}
         >
           ⏱️ Pomodoro
         </button>
-        
+
         {showPomodoro && (
           <div className="pomodoro-panel">
             <div className="pomodoro-header">
               <h3>⏱️ Pomodoro Timer</h3>
-              <button 
-                className="pomodoro-close"
-                onClick={() => setShowPomodoro(false)}
-              >
-                ×
-              </button>
+              <button className="pomodoro-close" onClick={() => setShowPomodoro(false)}>×</button>
             </div>
-            
+
             <div className="pomodoro-modes">
-              <button 
+              <button
                 className={`mode-btn ${pomodoroMode === 'focus' ? 'active' : ''}`}
                 onClick={() => changePomodoroMode('focus')}
               >
                 🎯 Focus (25m)
               </button>
-              <button 
+              <button
                 className={`mode-btn ${pomodoroMode === 'shortBreak' ? 'active' : ''}`}
                 onClick={() => changePomodoroMode('shortBreak')}
               >
                 ☕ Short Break (5m)
               </button>
-              <button 
+              <button
                 className={`mode-btn ${pomodoroMode === 'longBreak' ? 'active' : ''}`}
                 onClick={() => changePomodoroMode('longBreak')}
               >
                 🌴 Long Break (15m)
               </button>
             </div>
-            
+
             <div className="pomodoro-display">
-              <div className="pomodoro-timer">
-                {formatTime(pomodoroTimeLeft)}
-              </div>
+              <div className="pomodoro-timer">{formatTime(pomodoroTimeLeft)}</div>
               <div className="pomodoro-controls">
                 {!isPomodoroActive ? (
-                  <button onClick={startPomodoro} className="control-btn start-btn">
-                    ▶️ Start
-                  </button>
+                  <button onClick={startPomodoro} className="control-btn start-btn">▶️ Start</button>
                 ) : (
-                  <button onClick={pausePomodoro} className="control-btn pause-btn">
-                    ⏸️ Pause
-                  </button>
+                  <button onClick={pausePomodoro} className="control-btn pause-btn">⏸️ Pause</button>
                 )}
-                <button onClick={resetPomodoro} className="control-btn reset-btn">
-                  🔄 Reset
-                </button>
+                <button onClick={resetPomodoro} className="control-btn reset-btn">🔄 Reset</button>
               </div>
             </div>
-            
+
             <div className="pomodoro-progress">
-              <div 
+              <div
                 className="progress-ring"
                 style={{
                   background: `conic-gradient(var(--accent) ${(pomodoroTimeLeft / (pomodoroMinutes * 60)) * 360}deg, var(--surface-3) 0deg)`
