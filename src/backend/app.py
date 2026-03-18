@@ -36,7 +36,6 @@ def generate_flashcards():
             {"question": f"{subject} Q4 ({year}) about {topic}", "answer": "Answer 4"},
             {"question": f"{subject} Q5 ({year}) about {topic}", "answer": "Answer 5"},
         ]
-
         return jsonify(cards)
 
     except Exception as e:
