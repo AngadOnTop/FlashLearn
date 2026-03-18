@@ -87,5 +87,65 @@ and $$ for block math. For example: "The quadratic formula is $x = \frac{{-b \pm
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/mark", methods=["POST", "OPTIONS"])
+def mark_answers():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    try:
+        body = request.json
+        questions = body.get("questions", [])
+
+        marking_prompt = "You are a teacher marking student answers. For each question and answer pair, compare the student's answer to the correct answer and give a score out of 10 and brief feedback. Return ONLY a raw JSON array like this:\n[\n  {\"score\": 8, \"feedback\": \"Good answer, but missing...\"}\n]\nOne object per question, in the same order."
+
+        qa_text = ""
+        for i, q in enumerate(questions):
+            qa_text += f"Question {i+1}: {q['question']}\nCorrect Answer: {q['correctAnswer']}\nStudent Answer: {q['studentAnswer']}\n\n"
+
+        api_response = requests.post(
+            "https://api.apifree.ai/v1/chat/completions",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {API_KEY}"
+            },
+            json={
+                "model": "anthropic/claude-haiku-4.5",
+                "max_tokens": 1024,
+                "messages": [
+                    {"role": "system", "content": marking_prompt},
+                    {"role": "user", "content": qa_text}
+                ],
+                "stream": False
+            }
+        )
+
+        if not api_response.ok:
+            raise Exception(f"API request failed: {api_response.status_code}")
+
+        api_data = api_response.json()
+
+        if "choices" not in api_data or not api_data["choices"]:
+            raise Exception("Invalid API response format")
+
+        content = api_data["choices"][0]["message"]["content"]
+        content = re.sub(r'```json|```', '', content).strip()
+
+        try:
+            results = json.loads(content)
+            if not isinstance(results, list):
+                raise ValueError("Not a list")
+        except (json.JSONDecodeError, ValueError):
+            match = re.search(r'\[.*\]', content, re.DOTALL)
+            if match:
+                results = json.loads(match.group())
+            else:
+                raise Exception("Could not parse marking results")
+
+        return jsonify(results)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
