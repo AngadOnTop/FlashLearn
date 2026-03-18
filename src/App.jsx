@@ -157,7 +157,7 @@ function App() {
       // Use different URLs for development vs production
       const apiUrl = window.location.hostname === 'localhost' 
         ? "http://192.168.0.5:5000/generate"  // Local development
-        : "https://flashlearn-v05j.onrender.com"; // Production (replace with your actual backend URL)
+        : "https://flashlearn-v05j.onrender.com/generate"; // Production (replace with your actual backend URL)
       
       const response = await fetch(apiUrl, {
         method: "POST",
