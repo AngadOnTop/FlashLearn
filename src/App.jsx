@@ -221,8 +221,12 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="logo">
-          <h1>🧠 FlashLearn</h1>
+          <div className="logo-container">
+            <img src="/src/assets/logo.png" alt="FlashLearn Logo" className="logo-image" />
+            <h1>FlashLearn</h1>
+          </div>
           <p className="tagline">AI-Powered Flashcard Generator</p>
+          <p className="made-by">Made by Angad</p>
         </div>
       </header>
 
