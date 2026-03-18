@@ -38,10 +38,18 @@ function App() {
   const [subject, setSubject] = useState("");
   const [syllabus, setSyllabus] = useState("");
   const [cards, setCards] = useState([]);
+  const [customCards, setCustomCards] = useState([]);
+  const [allCards, setAllCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  const [customQuestion, setCustomQuestion] = useState("");
+  const [customAnswer, setCustomAnswer] = useState("");
+  const [studyMode, setStudyMode] = useState(false);
+  const [currentStudyCards, setCurrentStudyCards] = useState([]);
+  const [studyType, setStudyType] = useState(""); // "ai" or "custom"
 
   const generateCards = async (event) => {
     event.preventDefault();
@@ -77,7 +85,7 @@ function App() {
       }
 
       setCards(data);
-      setCurrentIndex(0);
+      // Don't automatically start study mode - let user click "Run" button
     } catch (error) {
       console.error("Error generating cards:", error);
       setError(`Failed to generate flashcards: ${error.message}`);
@@ -86,8 +94,61 @@ function App() {
     }
   };
 
+  const startAICardsStudy = () => {
+    if (cards.length > 0) {
+      setCurrentStudyCards(cards);
+      setStudyType("ai");
+      setStudyMode(true);
+      setCurrentIndex(0);
+      setShowAnswer(false);
+    }
+  };
+
+  const startCustomCardsStudy = () => {
+    if (customCards.length > 0) {
+      setCurrentStudyCards(customCards);
+      setStudyType("custom");
+      setStudyMode(true);
+      setCurrentIndex(0);
+      setShowAnswer(false);
+    }
+  };
+
+  const addCustomCard = (event) => {
+    event.preventDefault();
+    if (customQuestion.trim() && customAnswer.trim()) {
+      const newCard = {
+        question: customQuestion.trim(),
+        answer: customAnswer.trim(),
+        isCustom: true
+      };
+      const updatedCustomCards = [...customCards, newCard];
+      setCustomCards(updatedCustomCards);
+      setAllCards([...cards, ...updatedCustomCards]);
+      setCustomQuestion("");
+      setCustomAnswer("");
+      setShowCustomForm(false);
+      
+      // If this is the first card overall, set it as current
+      if (allCards.length === 0) {
+        setCurrentIndex(0);
+      }
+    }
+  };
+
+  const deleteCustomCard = (index) => {
+    const updatedCustomCards = customCards.filter((_, i) => i !== index);
+    setCustomCards(updatedCustomCards);
+    setAllCards([...cards, ...updatedCustomCards]);
+    
+    // Adjust current index if necessary
+    if (currentIndex >= allCards.length - 1) {
+      setCurrentIndex(Math.max(0, currentIndex - 1));
+    }
+  };
+
   const nextCard = () => {
-    if (currentIndex < cards.length - 1) {
+    if (currentIndex < allCards.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowAnswer(false);
     }
@@ -106,14 +167,19 @@ function App() {
 
   const resetCards = () => {
     setCards([]);
+    setCustomCards([]);
+    setAllCards([]);
     setCurrentIndex(0);
     setShowAnswer(false);
     setError("");
+    setShowCustomForm(false);
   };
 
   const getProgressPercentage = () => {
-    return cards.length > 0 ? ((currentIndex + 1) / cards.length) * 100 : 0;
+    return allCards.length > 0 ? ((currentIndex + 1) / allCards.length) * 100 : 0;
   };
+
+  const currentCard = allCards[currentIndex];
 
   return (
     <div className="app">
@@ -125,7 +191,7 @@ function App() {
       </header>
 
       <main className="main-content">
-        {!cards.length && (
+        {!allCards.length && (
           <section className="generator-section">
             <div className="form-container">
               <h2>Create Your Study Flashcards</h2>
@@ -182,6 +248,18 @@ function App() {
                 </button>
               </form>
 
+              <div className="divider">
+                <span>OR</span>
+              </div>
+
+              <button 
+                onClick={() => setShowCustomForm(true)} 
+                className="custom-btn"
+                disabled={isLoading}
+              >
+                ✏️ Create Your Own Flashcards
+              </button>
+
               {error && (
                 <div className="error-message">
                   <strong>Error:</strong> {error}
@@ -191,7 +269,61 @@ function App() {
           </section>
         )}
 
-        {cards.length > 0 && (
+        {showCustomForm && !allCards.length && (
+          <section className="custom-section">
+            <div className="form-container">
+              <h2>Create Custom Flashcard</h2>
+              <p className="form-description">
+                Add your own questions and answers
+              </p>
+
+              <form onSubmit={addCustomCard} className="flashcard-form">
+                <div className="form-group">
+                  <label htmlFor="custom-question">Question</label>
+                  <textarea
+                    id="custom-question"
+                    placeholder="Enter your question here..."
+                    value={customQuestion}
+                    onChange={(e) => setCustomQuestion(e.target.value)}
+                    required
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="custom-answer">Answer</label>
+                  <textarea
+                    id="custom-answer"
+                    placeholder="Enter the answer here..."
+                    value={customAnswer}
+                    onChange={(e) => setCustomAnswer(e.target.value)}
+                    required
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button type="submit" className="generate-btn">
+                    ➕ Add Flashcard
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowCustomForm(false);
+                      setCustomQuestion("");
+                      setCustomAnswer("");
+                    }}
+                    className="cancel-btn"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        )}
+
+        {allCards.length > 0 && (
           <section className="study-section">
             <div className="study-header">
               <div className="progress-info">
@@ -202,7 +334,12 @@ function App() {
                   ></div>
                 </div>
                 <p className="progress-text">
-                  {currentIndex + 1} of {cards.length} cards
+                  {currentIndex + 1} of {allCards.length} cards
+                  {customCards.length > 0 && (
+                    <span className="card-count">
+                      ({cards.length} AI + {customCards.length} custom)
+                    </span>
+                  )}
                 </p>
               </div>
               <button onClick={resetCards} className="reset-btn">
@@ -214,13 +351,16 @@ function App() {
               <div className="flashcard-header">
                 <span className="subject-badge">{subject}</span>
                 <span className="topic-badge">{syllabus}</span>
+                {currentCard?.isCustom && (
+                  <span className="custom-badge">📝 Custom</span>
+                )}
               </div>
 
               <div className="flashcard-single">
                 <div className="question-section">
                   <div className="question-label">Question {currentIndex + 1}</div>
                   <div className="question-text">
-                    {renderText(cards[currentIndex].question)}
+                    {renderText(currentCard?.question)}
                   </div>
                 </div>
 
@@ -228,7 +368,7 @@ function App() {
                   <div className="answer-section">
                     <div className="answer-label">Answer</div>
                     <div className="answer-text">
-                      {renderText(cards[currentIndex].answer)}
+                      {renderText(currentCard?.answer)}
                     </div>
                   </div>
                 )}
@@ -256,7 +396,94 @@ function App() {
                 </button>
               </div>
             </div>
+
+            {/* Custom Card Management */}
+            <div className="custom-management">
+              <div className="custom-header">
+                <h3>Custom Flashcards ({customCards.length})</h3>
+                <button 
+                  onClick={() => setShowCustomForm(true)}
+                  className="add-custom-btn"
+                >
+                  ➕ Add Custom Card
+                </button>
+              </div>
+
+              {customCards.length > 0 && (
+                <div className="custom-cards-list">
+                  {customCards.map((card, index) => (
+                    <div key={index} className="custom-card-item">
+                      <div className="custom-card-content">
+                        <div className="custom-card-question">
+                          <strong>Q:</strong> {card.question}
+                        </div>
+                        <div className="custom-card-answer">
+                          <strong>A:</strong> {card.answer}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => deleteCustomCard(index)}
+                        className="delete-btn"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
+        )}
+
+        {/* Custom Form Modal/Overlay */}
+        {showCustomForm && allCards.length > 0 && (
+          <div className="custom-overlay">
+            <div className="custom-modal">
+              <h3>Add Custom Flashcard</h3>
+              <form onSubmit={addCustomCard}>
+                <div className="form-group">
+                  <label htmlFor="modal-question">Question</label>
+                  <textarea
+                    id="modal-question"
+                    placeholder="Enter your question here..."
+                    value={customQuestion}
+                    onChange={(e) => setCustomQuestion(e.target.value)}
+                    required
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="modal-answer">Answer</label>
+                  <textarea
+                    id="modal-answer"
+                    placeholder="Enter the answer here..."
+                    value={customAnswer}
+                    onChange={(e) => setCustomAnswer(e.target.value)}
+                    required
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button type="submit" className="generate-btn">
+                    ➕ Add Flashcard
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowCustomForm(false);
+                      setCustomQuestion("");
+                      setCustomAnswer("");
+                    }}
+                    className="cancel-btn"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </main>
 
