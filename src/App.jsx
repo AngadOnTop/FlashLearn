@@ -493,6 +493,7 @@ function App() {
             {!tutorStarted ? (
               <div className="tutor-setup">
                 <div className="tutor-setup-card">
+                <button onClick={exitTutor} className="exit-btn" style={{ alignSelf: 'flex-start', marginBottom: '1rem' }}>← Back</button>
                   <div className="tutor-avatar">🎓</div>
                   <h2>FlashLearn Tutor</h2>
                   <p className="form-description">Your personal NSW NESA tutor — ask questions, work through problems, and get guided explanations tailored to your syllabus.</p>
@@ -528,6 +529,7 @@ function App() {
               <div className="tutor-chat">
                 <div className="tutor-chat-header">
                   <div className="tutor-chat-info">
+                    <button onClick={exitTutor} className="exit-btn" style={{ marginRight: '0.75rem' }}>← Back</button>
                     <span className="tutor-avatar-sm">🎓</span>
                     <div>
                       <div className="tutor-chat-title">FlashLearn Tutor</div>
