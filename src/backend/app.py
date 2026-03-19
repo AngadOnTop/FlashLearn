@@ -20,14 +20,12 @@ def generate_flashcards():
         subject = body.get("subject", "")
         topic = body.get("topic", "")
         count = body.get("count", 5)
-        
-        # Validate count (max 20)
+
         if count > 20:
             count = 20
         elif count < 1:
             count = 5
 
-        # Create dynamic system prompt
         system_prompt = rf"""You are an assistant that generates educational flashcard questions.
 Generate exactly {count} questions relevant to that year, subject, and topic.
 Return ONLY a raw JSON array with 'question' and 'answer' fields.
@@ -39,6 +37,11 @@ and $$ for block math. For example: "The quadratic formula is $x = \frac{{-b \pm
 ]"""
 
         user_prompt = f"Generate {count} flashcard questions for {subject} at {year} level about {topic}."
+
+        print("=== REQUEST ===")
+        print(f"Year: {year}, Subject: {subject}, Topic: {topic}, Count: {count}")
+        print("=== PROMPT ===")
+        print(user_prompt)
 
         api_response = requests.post(
             "https://api.apifree.ai/v1/chat/completions",
@@ -66,9 +69,10 @@ and $$ for block math. For example: "The quadratic formula is $x = \frac{{-b \pm
             raise Exception("Invalid API response format")
 
         content = api_data["choices"][0]["message"]["content"]
-
-        # Strip markdown code fences if present
         content = re.sub(r'```json|```', '', content).strip()
+
+        print("=== RESPONSE ===")
+        print(content)
 
         try:
             cards = json.loads(content)
@@ -81,11 +85,15 @@ and $$ for block math. For example: "The quadratic formula is $x = \frac{{-b \pm
             else:
                 raise Exception("Could not parse flashcards from AI response")
 
+        print("=== CARDS ===")
+        print(cards)
+
         return jsonify(cards)
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/mark", methods=["POST", "OPTIONS"])
 def mark_answers():
@@ -96,11 +104,22 @@ def mark_answers():
         body = request.json
         questions = body.get("questions", [])
 
-        marking_prompt = "You are a teacher marking student answers. For each question and answer pair, compare the student's answer to the correct answer and give a score out of 10 and brief feedback. Return ONLY a raw JSON array like this:\n[\n  {\"score\": 8, \"feedback\": \"Good answer, but missing...\"}\n]\nOne object per question, in the same order."
+        marking_prompt = """You are a teacher marking student answers. For each question and answer pair,
+compare the student's answer to the correct answer and give a score out of 10 and brief feedback.
+Return ONLY a raw JSON array like this:
+[
+  {"score": 8, "feedback": "Good answer, but missing..."}
+]
+One object per question, in the same order. No markdown, no code fences."""
 
         qa_text = ""
         for i, q in enumerate(questions):
-            qa_text += f"Question {i+1}: {q['question']}\nCorrect Answer: {q['correctAnswer']}\nStudent Answer: {q['studentAnswer']}\n\n"
+            qa_text += f"Question {i+1}: {q['question']}\n"
+            qa_text += f"Correct Answer: {q['correctAnswer']}\n"
+            qa_text += f"Student Answer: {q['studentAnswer']}\n\n"
+
+        print("=== MARK REQUEST ===")
+        print(qa_text)
 
         api_response = requests.post(
             "https://api.apifree.ai/v1/chat/completions",
@@ -130,22 +149,29 @@ def mark_answers():
         content = api_data["choices"][0]["message"]["content"]
         content = re.sub(r'```json|```', '', content).strip()
 
+        print("=== MARK RESPONSE ===")
+        print(content)
+
         try:
             results = json.loads(content)
             if not isinstance(results, list):
-                raise ValueError("Not a list")
+                raise ValueError("Results not a list")
         except (json.JSONDecodeError, ValueError):
-            match = re.search(r'\[.*\]', content, re.DOTALL)
-            if match:
-                results = json.loads(match.group())
+            json_match = re.search(r'\[.*\]', content, re.DOTALL)
+            if json_match:
+                results = json.loads(json_match.group())
             else:
                 raise Exception("Could not parse marking results")
+
+        print("=== RESULTS ===")
+        print(results)
 
         return jsonify(results)
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
