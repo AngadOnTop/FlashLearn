@@ -9,18 +9,20 @@ CORS(app, origins=["http://localhost:5173", "https://flashlearnai.netlify.app", 
 
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-GENERATE_SYSTEM_PROMPT = """You are an expert NSW educational assistant generating flashcards strictly based on the NESA 2026 syllabus.
+TUTOR_SYSTEM_PROMPT = """You are an expert NSW educational assistant that helps students learn.
+You provide clear, concise explanations and answer questions thoroughly.
+Always tailor responses to the student's year level and subject.
+Focus on understanding and application, not just memorization.
+Break down complex topics into simple, digestible parts.
+Use examples and analogies when helpful.
+Keep responses encouraging and supportive.
+"""
+
+GENERATE_SYSTEM_PROMPT = """You are an assistant that generates educational flashcard questions.
+Generate exactly {count} questions relevant to that year, subject, and topic.
 Return ONLY a raw JSON array with 'question' and 'answer' fields.
 No markdown, no code fences, no explanation, just the raw JSON array.
-
-IMPORTANT LATEX RULES:
-- Every mathematical expression MUST be wrapped in $ for inline math or $$ for block math
-- Every opening $ must have a matching closing $. Never leave a $ unclosed.
-- CORRECT: "The formula is $A = P(1 + r)^n$"
-- INCORRECT: "The formula is A = P(1 + r)^n$" (missing opening $)
-- For display equations use $$...$$
-- Never mix LaTeX and plain text inside the same expression
-- Currency values must be written as plain text only, never inside LaTeX dollar signs. Write 2315.25 not $2,315.25
+For any mathematical expressions, use LaTeX notation wrapped in $ for inline math and $$ for block math.
 
 NESA SYLLABUS RULES:
 - Only generate content from the official NSW NESA 2026 syllabus for the given subject and year
@@ -279,7 +281,8 @@ def tutor():
                     {"role": "system", "content": context},
                     *messages
                 ],
-                "stream": False
+                "stream": False,
+                "timeout": 30  # Add 30 second timeout
             }
         )
 
