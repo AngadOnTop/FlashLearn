@@ -254,21 +254,30 @@ function App() {
     setSlowLoad(false);
     setShowAnswer(false);
     setError("");
+
     const slowTimer = setTimeout(() => setSlowLoad(true), 6000);
     try {
+      console.log('API Base URL:', apiBase); // Debug log
+      console.log('Request data:', { year, subject, topic: syllabus, count: cardCount }); // Debug log
+      
       const response = await fetch(`${apiBase}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         mode: "cors",
         body: JSON.stringify({ year, subject, topic: syllabus, count: cardCount })
       });
+      
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
       const data = await response.json();
+      
+      console.log('API Response:', data); // Debug log
+      
       if (data.error) { setError(data.error); showToast(data.error, 'error'); return; }
       if (!Array.isArray(data) || data.length === 0) { setError("No flashcards generated."); return; }
       setCards(data);
       showToast(`✅ Generated ${data.length} flashcards!`, 'success');
     } catch (err) {
+      console.error('API Error:', err); // Debug log
       setError(`Failed: ${err.message}`);
       showToast(`Failed: ${err.message}`, 'error');
     } finally {
