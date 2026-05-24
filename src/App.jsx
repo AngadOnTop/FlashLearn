@@ -941,8 +941,8 @@ function App() {
                         {customCards.map((card, index) => (
                           <div key={index} className="custom-card-item">
                             <div className="custom-card-content">
-                              <div className="custom-card-question"><strong>Q:</strong> {card.question}</div>
-                              <div className="custom-card-answer"><strong>A:</strong> {card.answer}</div>
+                              <div className="custom-card-question"><strong>Q:</strong> {renderText(card.question)}</div>
+                              <div className="custom-card-answer"><strong>A:</strong> {renderText(card.answer)}</div>
                             </div>
                             <button onClick={() => deleteCustomCard(index)} className="delete-btn">🗑️</button>
                           </div>

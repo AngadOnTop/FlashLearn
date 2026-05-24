@@ -1,13 +1,14 @@
 from flask import Flask, request, jsonify
+from pathlib import Path
 from flask_cors import CORS
 from dotenv import load_dotenv
-load_dotenv(".env.local")
+load_dotenv(Path(__file__).parent.parent.parent / ".env.local")
 import os, requests, json, re
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", "https://flashlearnai.netlify.app", "http://192.168.0.5:5173", "http://192.168.0.5:3000", "http://192.168.0.5:8080", "https://flashlearn-v05j.onrender.com"])
 
-API_KEY = os.getenv("ANTHROPIC_API_KEY")
+API_KEY = os.getenv("APIFREE_API_KEY")
 
 TUTOR_SYSTEM_PROMPT = """You are an expert NSW educational assistant that helps students learn.
 You provide clear, concise explanations and answer questions thoroughly.
@@ -53,7 +54,7 @@ Your teaching style:
 Never just give the answer outright — guide the student to work it out themselves when possible."""
 
 MARKING_SYSTEM_PROMPT = """You are a teacher marking student answers based on the NSW NESA 2026 syllabus.
-For each question and answer pair, compare the student's answer to the correct answer and give a score out of 10 and brief feedback.
+For each question and answer pair, compare the student's answer to the correct answer and give a score out of 10, No need for working out only the correct answer and brief feedback.
 Return ONLY a raw JSON array like this:
 [
   {"score": 8, "feedback": "Good answer, but missing..."}
@@ -105,29 +106,42 @@ One object per question in the same order. No markdown, no code fences."""
 
 
 def call_ai(system_prompt, user_prompt):
-    response = requests.post(
-        "https://api.apifree.ai/v1/chat/completions",
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {API_KEY}"
-        },
-        json={
-            "model": "anthropic/claude-haiku-4.5",
-            "max_tokens": 2048,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            "stream": False
-        }
-    )
-    if not response.ok:
-        raise Exception(f"API request failed: {response.status_code}")
-    data = response.json()
-    if "choices" not in data or not data["choices"]:
-        raise Exception("Invalid API response format")
-    return data["choices"][0]["message"]["content"]
+    try:
+        print("=== API CALL START ===")
+        print(f"API Key exists: {bool(API_KEY)}")
+        print(f"API Key length: {len(API_KEY) if API_KEY else 0}")
+        print(f"API Key starts with: {API_KEY[:10] if API_KEY else 'None'}...")
+        
+        response = requests.post(
+            "https://api.apifree.ai/v1/chat/completions",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {API_KEY}"
+            },
+            json={
+                "model": "moonshotai/kimi-k2.5",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 8096
+            },
+            timeout=90
+        )
 
+        response.raise_for_status()
+        data = response.json()
+        
+        print("=== API RESPONSE ===")
+        print(f"Response data: {data}")
+        print(f"Response keys: {data.keys() if isinstance(data, dict) else 'Not a dict'}")
+        
+        return data["choices"][0]["message"]["content"]
+
+    except Exception as e:
+        print("API ERROR:", e)
+        raise
 
 def parse_json_list(content):
     content = re.sub(r'```json|```', '', content).strip()
@@ -275,14 +289,14 @@ def tutor():
                 "Authorization": f"Bearer {API_KEY}"
             },
             json={
-                "model": "anthropic/claude-haiku-4.5",
-                "max_tokens": 1024,
+                "model": "moonshotai/kimi-k2.5",
+                "max_tokens": 8096,
                 "messages": [
                     {"role": "system", "content": context},
                     *messages
                 ],
                 "stream": False,
-                "timeout": 30  # Add 30 second timeout
+                "timeout": 30
             }
         )
 
