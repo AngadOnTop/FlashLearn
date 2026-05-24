@@ -186,6 +186,12 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [tutorMessages]);
 
+  useEffect(() => {
+    if (window.location.hostname !== 'localhost') {
+      fetch(`${apiBase}/health`).catch(() => {});
+    }
+  }, []);
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
