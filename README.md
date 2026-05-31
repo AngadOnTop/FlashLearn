@@ -1,96 +1,86 @@
 # FlashLearn
 
-An AI-powered flashcard generator and quiz platform, built as a Software Engineering assessment project.
+A study tool that uses AI to generate flashcards and quizzes. Built for a Year 11 Software Engineering assessment.
 
-**Live Demo:** [flashlearnai.netlify.app](https://flashlearnai.netlify.app)
-
----
-
-## Overview
-
-FlashLearn is a full-stack study tool that uses AI to generate personalised flashcards and quizzes based on your subject, academic level, and topic. You enter what you are studying and FlashLearn handles the rest.
-
-It was built using Python (Flask) on the backend and React on the frontend, as part of a Year 11 Software Engineering assessment.
+**Live demo:** [flashlearnai.netlify.app](https://flashlearnai.netlify.app)
 
 ---
 
-## Features
+## What it does
 
-- **AI Flashcard Generation** - Enter your subject, level, and topic to get instant flashcards powered by Claude AI.
-- **Custom Flashcards** - Create and manage your own question and answer cards.
-- **AI Quiz Mode** - After studying, take a quiz where AI marks your written answers and gives detailed feedback with a score out of 100.
-- **LaTeX Rendering** - Mathematical expressions render cleanly using KaTeX.
-- **Pomodoro Timer** - A built-in focus timer with 25, 5, and 15 minute modes.
-- **Responsive Design** - Works on both desktop and mobile.
+You enter a subject, academic level, and topic. FlashLearn generates flashcards instantly, lets you study them, then quizzes you with written answers that AI marks and gives feedback on.
+
+- Generate flashcards from any subject and topic
+- Create your own custom cards
+- Take a written quiz with AI marking and scores
+- LaTeX rendering for maths via KaTeX
+- Built-in Pomodoro timer (25/5/15 min)
+- Works on desktop and mobile
 
 ---
 
-## Tech Stack
+## Tech stack
 
-| Layer | Technology |
+| Layer | Tech |
 |---|---|
 | Frontend | React, Vite, KaTeX |
-| Backend | Python 3, Flask, Flask-CORS |
-| AI | Claude (via apifree.ai) |
-| Deployment | Netlify (frontend), Render (backend) |
+| Backend | Python 3, Flask |
+| AI | Claude |
+| Hosting | Netlify (frontend), Render (backend) |
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 flashlearn/
 ├── src/
 │   ├── frontend/
-│   │   ├── App.jsx          # Main React component
-│   │   ├── App.css          # Styles
-│   │   └── assets/          # Logo and images
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   └── assets/
 │   └── backend/
-│       ├── app.py           # Flask API server
+│       ├── app.py
 │       └── requirements.txt
-├── .env.local               # API keys (not committed)
+├── .env.local
 └── README.md
 ```
 
 ---
 
-## Getting Started
+## Getting started
 
-### Prerequisites
+**Prerequisites:** Python 3.11+, Node.js 18+, an API key from [apifree.ai](https://apifree.ai)
 
-- Python 3.11 or higher
-- Node.js 18 or higher
-- An API key from [apifree.ai](https://apifree.ai)
-
-### 1. Clone the repo
+### 1. Clone
 
 ```bash
 git clone https://github.com/your-username/flashlearn.git
 cd flashlearn
 ```
 
-### 2. Set up the backend
+### 2. Backend
 
 ```bash
 cd src/backend
 pip install -r requirements.txt
 ```
 
-Create a `.env.local` file in the backend folder:
+Add a `.env.local` file:
 
 ```
 ANTHROPIC_API_KEY=your-api-key-here
 ```
 
-Start the Flask server:
+Start the server:
 
 ```bash
 python3 app.py
 ```
 
-The backend runs on `http://localhost:5000`.
+Runs on `http://localhost:5000`.
 
-### 3. Set up the frontend
+### 3. Frontend
 
 ```bash
 cd src/frontend
@@ -98,17 +88,16 @@ npm install
 npm run dev
 ```
 
-The app runs on `http://localhost:5173`.
+Runs on `http://localhost:5173`.
 
 ---
 
-## API Endpoints
+## API
 
 ### `POST /generate`
 
-Generates AI flashcards based on study parameters.
+Generates flashcards based on study inputs.
 
-**Request body:**
 ```json
 {
   "year": "Year 11",
@@ -118,100 +107,46 @@ Generates AI flashcards based on study parameters.
 }
 ```
 
-**Response:**
-```json
-[
-  {
-    "question": "What is the quadratic formula?",
-    "answer": "x = (-b ± √(b²-4ac)) / 2a"
-  }
-]
-```
+Returns an array of question/answer pairs.
 
 ### `POST /mark`
 
-AI-marks student quiz answers and returns scores with feedback.
+Marks written quiz answers and returns a score with feedback.
 
-**Request body:**
 ```json
 {
   "questions": [
     {
       "question": "What is the quadratic formula?",
       "correctAnswer": "x = (-b ± √(b²-4ac)) / 2a",
-      "studentAnswer": "x equals negative b plus or minus the square root of b squared minus 4ac all over 2a"
+      "studentAnswer": "x equals negative b plus or minus..."
     }
   ]
 }
 ```
 
-**Response:**
-```json
-[
-  {
-    "score": 9,
-    "feedback": "Excellent -- correct formula with good explanation. Minor mark deducted for not using mathematical notation."
-  }
-]
-```
+Returns a score out of 10 and written feedback for each answer.
 
 ---
 
 ## Deployment
 
-### Backend on Render
+### Backend (Render)
 
-1. Push the code to GitHub.
-2. Create a new Web Service on [render.com](https://render.com).
-3. Set the root directory to `src/backend`.
-4. Build command: `pip install -r requirements.txt`
-5. Start command: `gunicorn app:app`
-6. Add `ANTHROPIC_API_KEY` as an environment variable.
+1. Push to GitHub and create a new Web Service on [render.com](https://render.com)
+2. Set root directory to `src/backend`
+3. Build command: `pip install -r requirements.txt`
+4. Start command: `gunicorn app:app`
+5. Add `ANTHROPIC_API_KEY` as an environment variable
 
-### Frontend on Netlify
+### Frontend (Netlify)
 
-1. Connect your GitHub repo on [netlify.com](https://netlify.com).
+1. Connect the repo on [netlify.com](https://netlify.com)
 2. Build command: `npm run build`
 3. Publish directory: `dist`
-4. Update the API URL in `App.jsx` to your Render URL.
+4. Update the API URL in `App.jsx` to your Render URL
 
-> **Note:** Render's free tier sleeps after a period of inactivity. The first request after idle may take around 30 seconds. FlashLearn shows a message while the server wakes up.
-
----
-
-## How It Works
-
-```
-User fills in the form
-      ↓
-React sends a POST request to the Flask backend
-      ↓
-Flask constructs a prompt and calls Claude AI via apifree.ai
-      ↓
-Claude returns a JSON array of flashcards
-      ↓
-Flask parses and validates the response
-      ↓
-React displays the flashcards or quiz
-      ↓
-For quiz marking: student answers are sent back to Flask, Claude marks them, and scores are returned
-```
-
----
-
-## Programming Concepts Demonstrated
-
-| Concept | Where |
-|---|---|
-| **Sequence** | The flashcard and quiz flow runs step by step in order |
-| **Selection** | Answer checking, score colour coding, and error handling |
-| **Iteration** | Looping through cards and mapping over quiz results |
-
----
-
-## License
-
-Built for educational purposes as part of a Year 11 Software Engineering assessment.
+> Render's free tier sleeps after inactivity. The first request may take around 30 seconds. FlashLearn shows a loading message while the server wakes up.
 
 ---
 
