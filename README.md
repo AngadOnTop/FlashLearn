@@ -1,24 +1,20 @@
 # FlashLearn
 
-A study tool that uses AI to generate flashcards and quizzes. Built for a Year 11 Software Engineering assessment.
+FlashLearn is a study tool I created in react, using Python as my backend, accessing ApiFree for the AI model. This tool can generate flashcards, generate quizzes and features a tailored ai-tutor structured to your year and subject.
 
 **Live demo:** [flashlearnai.netlify.app](https://flashlearnai.netlify.app)
 
 ---
-
 ## What it does
 
-You enter a subject, academic level, and topic. FlashLearn generates flashcards instantly, lets you study them, then quizzes you with written answers that AI marks and gives feedback on.
+Enter a subject, year level and topic. FlashLearn will then generate flashcards (takes around 30s if not used since the backend winds down :( sorry about that), lets you study them, then quizzes you on your answers, the AI also marks your answers at the end.
 
-- Generate flashcards from any subject and topic
-- Create your own custom cards
-- Take a written quiz with AI marking and scores
-- LaTeX rendering for maths via KaTeX
-- Built-in Pomodoro timer (25/5/15 min)
-- Works on desktop and mobile
++ Generate flashcards from any subject and topic from NESA syllabus
++ Create your own custom cards
++ Take a written quiz with AI marking and scores
++ Built-in Pomodoro timer (25/5/15 min)
 
 ---
-
 ## Tech stack
 
 | Layer | Tech |
@@ -29,8 +25,7 @@ You enter a subject, academic level, and topic. FlashLearn generates flashcards 
 | Hosting | Netlify (frontend), Render (backend) |
 
 ---
-
-## Project structure
+## File structure
 
 ```
 flashlearn/
@@ -47,8 +42,9 @@ flashlearn/
 ```
 
 ---
+## How to use
 
-## Getting started
+You can use it from the link provided above, but if you want to git clone here are the steps. 
 
 **Prerequisites:** Python 3.11+, Node.js 18+, an API key from [apifree.ai](https://apifree.ai)
 
@@ -91,63 +87,4 @@ npm run dev
 Runs on `http://localhost:5173`.
 
 ---
-
-## API
-
-### `POST /generate`
-
-Generates flashcards based on study inputs.
-
-```json
-{
-  "year": "Year 11",
-  "subject": "Mathematics",
-  "topic": "Quadratic Equations",
-  "count": 5
-}
-```
-
-Returns an array of question/answer pairs.
-
-### `POST /mark`
-
-Marks written quiz answers and returns a score with feedback.
-
-```json
-{
-  "questions": [
-    {
-      "question": "What is the quadratic formula?",
-      "correctAnswer": "x = (-b ± √(b²-4ac)) / 2a",
-      "studentAnswer": "x equals negative b plus or minus..."
-    }
-  ]
-}
-```
-
-Returns a score out of 10 and written feedback for each answer.
-
----
-
-## Deployment
-
-### Backend (Render)
-
-1. Push to GitHub and create a new Web Service on [render.com](https://render.com)
-2. Set root directory to `src/backend`
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `gunicorn app:app`
-5. Add `ANTHROPIC_API_KEY` as an environment variable
-
-### Frontend (Netlify)
-
-1. Connect the repo on [netlify.com](https://netlify.com)
-2. Build command: `npm run build`
-3. Publish directory: `dist`
-4. Update the API URL in `App.jsx` to your Render URL
-
-> Render's free tier sleeps after inactivity. The first request may take around 30 seconds. FlashLearn shows a loading message while the server wakes up.
-
----
-
-*Made by Angad*
+**created by Angad**
