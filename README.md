@@ -65,7 +65,7 @@ pip install -r requirements.txt
 Add a `.env.local` file:
 
 ```
-ANTHROPIC_API_KEY=your-api-key-here
+APIFREE_API_KEY=your-api-key-here
 ```
 
 Start the server:
