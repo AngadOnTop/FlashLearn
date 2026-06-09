@@ -17,29 +17,10 @@ Enter a subject, year level and topic. FlashLearn will then generate flashcards 
 ---
 ## Tech stack
 
-| Layer | Tech |
-|---|---|
-| Frontend | React, Vite, KaTeX |
-| Backend | Python 3, Flask |
-| AI | Claude |
-| Hosting | Netlify (frontend), Render (backend) |
-
----
-## File structure
-
-```
-flashlearn/
-├── src/
-│   ├── frontend/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── assets/
-│   └── backend/
-│       ├── app.py
-│       └── requirements.txt
-├── .env.local
-└── README.md
-```
+ - Frontend | React, Vite, KaTeX |
+ - Backend | Python 3, Flask |
+ - AI | kimi-k2.5 |
+ - Hosting | Netlify (frontend), Render (backend) |
 
 ---
 ## How to use
