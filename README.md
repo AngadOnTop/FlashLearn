@@ -68,4 +68,7 @@ npm run dev
 Runs on `http://localhost:5173`.
 
 ---
+## AI disclosure
+AI was used to help aid in the development of this project, it was mostly used for the front end and tricky react functions as well as for debugging, most of the backend was written by me with google and documentation as my help, except for some stuff as im not that proficient in python.
+
 **created by Angad**
